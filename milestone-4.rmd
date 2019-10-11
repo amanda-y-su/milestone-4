@@ -1,0 +1,50 @@
+---
+title: "Milestone 4"
+author: "Amanda Su"
+date: "10/11/2019"
+output: html_document
+---
+
+```{r setup, include = TRUE, echo = FALSE, warning = FALSE, message = FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+
+library(tidyverse)
+library(readxl)
+library(janitor)
+
+outbound <- read_xls("raw-data/outbound.xls", skip = 4) %>% 
+  select(Country, ...3, ...4, ...5, ...6, ...7, ...8, ...9) %>% 
+  set_names(c("country", "outbound_2013","outbound_2014","outbound_2015","outbound_2016","outbound_2017","outbound_2018", "2019")) 
+
+inbound <- read_xls("raw-data/inbound.xls", skip = 4) %>%
+  select(Country, ...3, ...4, ...5, ...6, ...7, ...8, ...9) %>% 
+  set_names(c("country", "inbound_2013","inbound_2014","inbound_2015","inbound_2016","inbound_2017","inbound_2018", "inbound_2019"))
+
+gdp <- read_xls("raw-data/gdp.xls", skip = 4) %>%
+  select(Country, ...3, ...4, ...5, ...6, ...7, ...8, ...9) %>% 
+  set_names(c("country", "gdp_2013","gdp_2014","gdp_2015","gdp_2016","gdp_2017","gdp_2018", "gdp_2019"))
+
+gov_education <- read_xls("raw-data/gov-expend-education.xls", skip = 4) %>%
+  select(Country, ...3, ...4, ...5, ...6, ...7, ...8, ...9) %>% 
+  set_names(c("country", "govedu_2013","govedu_2014","govedu_2015","govedu_2016","govedu_2017","govedu_2018", "govedu_2019"))
+
+population <- read_xls("raw-data/population.xls", skip = 4) %>%
+  select(Country, ...3, ...4, ...5, ...6, ...7, ...8, ...9) %>% 
+  set_names(c("country", "pop_2013","pop_2014","pop_2015","pop_2016","pop_2017","pop_2018", "pop_2019"))
+
+x <- inner_join(inbound, gov_education, by = 'country') %>% 
+  inner_join(gdp, by = 'country') %>% 
+  slice(1:281)
+
+x %>% 
+  filter(inbound_2015 > 1) %>% group_by(country) %>%
+  ggplot(aes(x = as.numeric(govedu_2015), y = as.numeric(inbound_2015)), size = as.numeric(gdp_2015)) + 
+  geom_point() + 
+  labs(x = "Government Expenditure on Education as Percentage of GDP", 
+       y = "Number of Inbound Students", 
+       title = "Number of International Students in a Country vs the Country's Government \nExpenditure on Education as a Percentage of its GDP", 
+       subtitle = "Data from 2015") + 
+  scale_x_log10() + scale_y_log10()
+
+
+```
