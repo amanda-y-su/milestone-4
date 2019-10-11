@@ -8,43 +8,107 @@ output: html_document
 ```{r setup, include = TRUE, echo = FALSE, warning = FALSE, message = FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 
+#load relevant packages 
+
 library(tidyverse)
 library(readxl)
 library(janitor)
 
+#read in outbound students dataset raw data and assign to outbound, skipping the first four lines since they include miscellaneous, unnecessary info
+
 outbound <- read_xls("raw-data/outbound.xls", skip = 4) %>% 
+  
+  #select only the relevant columns (country and the years until 2019)
+  
   select(Country, ...3, ...4, ...5, ...6, ...7, ...8, ...9) %>% 
+  
+  #rename the columns so that they aren't in the "...#" format
+  
   set_names(c("country", "outbound_2013","outbound_2014","outbound_2015","outbound_2016","outbound_2017","outbound_2018", "2019")) 
 
+#read in outbound students dataset raw data and assign to inbound, skipping the first four lines since they include miscellaneous, unnecessary info
+
 inbound <- read_xls("raw-data/inbound.xls", skip = 4) %>%
+  
+  #select only the relevant columns (country and the years until 2019)
+
   select(Country, ...3, ...4, ...5, ...6, ...7, ...8, ...9) %>% 
+  
+  #rename the columns so that they aren't in the "...#" format
+  
   set_names(c("country", "inbound_2013","inbound_2014","inbound_2015","inbound_2016","inbound_2017","inbound_2018", "inbound_2019"))
 
+#read in gdp dataset raw data and assign to outbound, skipping the first four lines since they include miscellaneous, unnecessary info
+
 gdp <- read_xls("raw-data/gdp.xls", skip = 4) %>%
+  
+  #select only the relevant columns (country and the years until 2019)
+  
   select(Country, ...3, ...4, ...5, ...6, ...7, ...8, ...9) %>% 
+  
+  #rename the columns so that they aren't in the "...#" format
+  
   set_names(c("country", "gdp_2013","gdp_2014","gdp_2015","gdp_2016","gdp_2017","gdp_2018", "gdp_2019"))
 
+#read in gov_education students dataset raw data and assign to outbound, skipping the first four lines since they include miscellaneous, unnecessary info
+
 gov_education <- read_xls("raw-data/gov-expend-education.xls", skip = 4) %>%
+  
+  #select only the relevant columns (country and the years until 2019)
+  
   select(Country, ...3, ...4, ...5, ...6, ...7, ...8, ...9) %>% 
+  
+  #rename the columns so that they aren't in the "...#" format
+  
   set_names(c("country", "govedu_2013","govedu_2014","govedu_2015","govedu_2016","govedu_2017","govedu_2018", "govedu_2019"))
 
+#read in population dataset raw data and assign to outbound, skipping the first four lines since they include miscellaneous, unnecessary info
+
 population <- read_xls("raw-data/population.xls", skip = 4) %>%
+  
+  #select only the relevant columns (country and the years until 2019)
+  
   select(Country, ...3, ...4, ...5, ...6, ...7, ...8, ...9) %>% 
+  
+  #rename the columns so that they aren't in the "...#" format
+  
   set_names(c("country", "pop_2013","pop_2014","pop_2015","pop_2016","pop_2017","pop_2018", "pop_2019"))
 
+#create dataset named x by joining the inbound and gov_education datasets so that there are variables indicating the number of inbound international students in a country and the governmnent expenditure on education as percentage of a country's GDP for each year
+#joined by country variable since both original datasets had that variable in common
+
 x <- inner_join(inbound, gov_education, by = 'country') %>% 
+  
+  #join gdp to the dataset as well 
+  
   inner_join(gdp, by = 'country') %>% 
+  
+  #select only the first 281 rows since the last few just have NAs and other irrelevant info
+  
   slice(1:281)
 
 x %>% 
-  filter(inbound_2015 > 1) %>% group_by(country) %>%
+  
+  #create ggplot with the x axis being gov expenditure on education of host country and y axis being number of           international students 
+  #I attempted to change the size of the points depending on the GDP of the countries but alas it did not work and I     don't know why
+  
   ggplot(aes(x = as.numeric(govedu_2015), y = as.numeric(inbound_2015)), size = as.numeric(gdp_2015)) + 
+  
+  #create scatterplot
+  
   geom_point() + 
+  
+  #add labels
+  
   labs(x = "Government Expenditure on Education as Percentage of GDP", 
        y = "Number of Inbound Students", 
        title = "Number of International Students in a Country vs the Country's Government \nExpenditure on Education as a Percentage of its GDP", 
        subtitle = "Data from 2015") + 
-  scale_x_log10() + scale_y_log10()
+  
+  #scale axes log10 so that the data points are more spread out and easier to distinguishs
+  
+  scale_x_log10() + 
+  scale_y_log10()
 
 
 ```
